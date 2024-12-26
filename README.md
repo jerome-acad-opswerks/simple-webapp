@@ -1,11 +1,14 @@
-Activate the environment
-. .venv/bin/activate
+# Create an environment
+``` python3 -m venv .venv ```
 
-Install Requirements
-pip install -r requirements.txt
+# Activate the environment
+``` . .venv/bin/activate ```
 
-Deactivate the environment
-deactivate
+# Install Requirements
+``` pip install -r requirements.txt ```
 
-Run Server
-gunicorn -w 4 'app:app'
+# Deactivate the environment
+``` deactivate ```
+
+# Run Server
+``` gunicorn -w 4 'app:app' ```
