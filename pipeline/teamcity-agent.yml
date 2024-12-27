@@ -6,7 +6,7 @@ metadata:
     app: teamcity-agent
   name: teamcity-agent
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: teamcity-agent
@@ -17,10 +17,6 @@ spec:
       labels:
         app: teamcity-agent
     spec:
-      volumes:
-      - name: storage
-        persistentVolumeClaim:
-          claimName: teamcity 
       containers:
       - image: jetbrains/teamcity-agent
         name: teamcity-agent
@@ -30,8 +26,4 @@ spec:
           - name: SERVER_URL
             value: 'teamcity.default'
         resources: {}
-        volumeMounts:
-        - mountPath: "/data/teamcity_agent/conf"
-          name: storage
-          subPath: agent
 status: {}

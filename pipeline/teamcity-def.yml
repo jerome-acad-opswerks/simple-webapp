@@ -9,6 +9,10 @@ spec:
     - name: storage
       persistentVolumeClaim:
         claimName: teamcity
+  initContainers:
+    - name: init-container
+      image: busybox
+      command: ["sh", "-c", "chown 1000:1000 /data/*"]
   containers:
     - name: teamcity-container
       image: jetbrains/teamcity-server
