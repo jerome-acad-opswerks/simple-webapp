@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: teamcity-agent
+  name: teamcity-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teamcity-agent
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: teamcity-agent
+    spec:
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: teamcity 
+      containers:
+      - image: jetbrains/teamcity-agent
+        name: teamcity-agent
+        securityContext:
+          runAsUser: 1000
+        env:
+          - name: SERVER_URL
+            value: 'teamcity.default'
+        resources: {}
+        volumeMounts:
+        - mountPath: "/data/teamcity_agent/conf"
+          name: storage
+          subPath: agent
+status: {}

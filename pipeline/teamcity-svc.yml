@@ -7,7 +7,7 @@ metadata:
   name: teamcity
 spec:
   ports:
-  - port: 8111
+  - port: 80
     protocol: TCP
     targetPort: 8111
   selector:
