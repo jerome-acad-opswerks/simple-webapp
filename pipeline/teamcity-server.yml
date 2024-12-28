@@ -18,9 +18,7 @@ spec:
         - containerPort: 8111
           name: "teamcity-server"
       volumeMounts:
-        - mountPath: "/data/teamcity_server/datadir"
+        - mountPath: "/data/teamcity_server/"
           name: storage
-          subPath: data
-        - mountPath: "/opt/teamcity/logs"
+        - mountPath: "/opt/teamcity/"
           name: storage
-          subPath: logs

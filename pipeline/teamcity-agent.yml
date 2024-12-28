@@ -27,11 +27,12 @@ spec:
         securityContext:
           runAsUser: 1000
         env:
-          - name: SERVER_URL
-            value: 'teamcity.default'
+        - name: SERVER_URL
+          value: 'teamcity.default'
+        - name: AGENT_NAME
+          value: "build-agent-1"
         resources: {}
         volumeMounts:
-        - mountPath: "/data/teamcity_agent/conf"
+        - mountPath: "/data/"
           name: storage
-          subPath: agent
 status: {}
