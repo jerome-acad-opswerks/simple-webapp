@@ -31,15 +31,18 @@ spec:
           command: ["sh", "-c", "chown 1000:1000 /data/teamcity_agent/conf;"]
 
       containers:
-      - image: jetbrains/teamcity-agent
+      - image: 'jetbrains/teamcity-agent:2024.12-linux-sudo'
         name: teamcity-agent
         securityContext:
-          runAsUser: 1000
+          runAsUser: 0
+          privileged: true
         env:
         - name: SERVER_URL
           value: 'teamcity.default'
         - name: AGENT_NAME
           value: "build-agent-1"
+        - name: DOCKER_IN_DOCKER
+          value: start
         resources: {}
         volumeMounts:
         - mountPath: "/data/teamcity_agent/conf"
