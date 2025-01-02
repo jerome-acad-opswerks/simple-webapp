@@ -9,6 +9,17 @@ spec:
     - name: storage
       persistentVolumeClaim:
         claimName: teamcity
+  initContainers:
+    - name: init
+      image: busybox
+      volumeMounts:
+        - mountPath: "/data/teamcity_server/datadir"
+          name: storage
+          subPath: data
+        - mountPath: "/opt/teamcity/logs"
+          name: storage
+          subPath: opt
+      command: ["sh", "-c", "chown 1000:1000 /data/teamcity_server/datadir; chown 1000:1000 /opt/teamcity/logs"]
   containers:
     - name: teamcity-container
       image: jetbrains/teamcity-server
@@ -18,7 +29,9 @@ spec:
         - containerPort: 8111
           name: "teamcity-server"
       volumeMounts:
-        - mountPath: "/data/teamcity_server/"
+        - mountPath: "/data/teamcity_server/datadir"
           name: storage
-        - mountPath: "/opt/teamcity/"
+          subPath: data
+        - mountPath: "/opt/teamcity/logs"
           name: storage
+          subPath: opt

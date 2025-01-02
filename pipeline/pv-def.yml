@@ -10,6 +10,11 @@ spec:
     storage: 10Gi
   accessModes:
     - ReadWriteOnce
-  hostPath:
+  local:
     path: "/data"
-
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
