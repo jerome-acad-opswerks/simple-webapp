@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: app-monitor
+  namespace: simple-webapp
+  labels:
+    team: operations
+    release: kube-prom-stack
+spec:
+  endpoints:
+    - port: metrics
+      path: "/"
+  selector:
+    matchLabels:
+      app: "simple-webapp"

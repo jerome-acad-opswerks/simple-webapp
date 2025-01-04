@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-webapp
+  namespace: simple-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-webapp
+  template:
+    metadata:
+      labels:
+        app: simple-webapp
+    spec:
+      containers:
+        - image: 'jeromeevangelista/simple-webapp:latest'
+          name: simple-webapp
+          ports:
+            - containerPort: 8000
+              name: web
+            - containerPort: 8080
+              name: metrics
