@@ -5,7 +5,7 @@ metadata:
   namespace: simple-webapp
   labels:
     team: operations
-    release: kube-prom-stack
+    release: prometheus-stack
 spec:
   endpoints:
     - port: metrics
