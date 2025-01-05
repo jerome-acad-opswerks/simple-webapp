@@ -1,0 +1,340 @@
+{
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "schema": "1",
+  "spelEvaluator": "v4",
+  "stages": [
+    {
+      "account": "my-k8s-account",
+      "app": "simple-webapp",
+      "cloudProvider": "kubernetes",
+      "location": "simple-webapp",
+      "manifestName": "deployment simple-webapp",
+      "mode": "static",
+      "name": "Find Artifact",
+      "refId": "1",
+      "requisiteStageRefIds": [],
+      "type": "findArtifactsFromResource"
+    },
+    {
+      "account": "my-k8s-account",
+      "cloudProvider": "kubernetes",
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": true,
+      "failPipeline": false,
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "name": "simple-webapp-baseline",
+            "namespace": "simple-webapp"
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "simple-webapp"
+              }
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "simple-webapp"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "image": "${#stage(\"Find Artifact\").context[\"artifacts\"][0][\"reference\"]}",
+                    "name": "simple-webapp",
+                    "ports": [
+                      {
+                        "containerPort": 8000,
+                        "name": "web"
+                      },
+                      {
+                        "containerPort": 8080,
+                        "name": "metrics"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "moniker": {
+        "app": "simple-webapp"
+      },
+      "name": "Deploy Baseline",
+      "refId": "2",
+      "requisiteStageRefIds": [
+        "1"
+      ],
+      "skipExpressionEvaluation": false,
+      "source": "text",
+      "trafficManagement": {
+        "enabled": false,
+        "options": {
+          "enableTraffic": false,
+          "services": []
+        }
+      },
+      "type": "deployManifest"
+    },
+    {
+      "account": "my-k8s-account",
+      "cloudProvider": "kubernetes",
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": true,
+      "failPipeline": false,
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "name": "simple-webapp-canary",
+            "namespace": "simple-webapp"
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "simple-webapp"
+              }
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "simple-webapp"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "image": "jeromeevangelista/simple-webapp:${trigger[\"tag\"]}",
+                    "name": "simple-webapp",
+                    "ports": [
+                      {
+                        "containerPort": 8000,
+                        "name": "web"
+                      },
+                      {
+                        "containerPort": 8080,
+                        "name": "metrics"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "moniker": {
+        "app": "simple-webapp"
+      },
+      "name": "Deploy Canary",
+      "refId": "3",
+      "requisiteStageRefIds": [
+        "2"
+      ],
+      "skipExpressionEvaluation": false,
+      "source": "text",
+      "trafficManagement": {
+        "enabled": false,
+        "options": {
+          "enableTraffic": false,
+          "services": []
+        }
+      },
+      "type": "deployManifest"
+    },
+    {
+      "account": "my-k8s-account",
+      "app": "simple-webapp",
+      "cloudProvider": "kubernetes",
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": false,
+      "failPipeline": true,
+      "location": "simple-webapp",
+      "manifestName": "deployment simple-webapp",
+      "mode": "static",
+      "name": "Production Scale Down",
+      "refId": "4",
+      "replicas": "3",
+      "requisiteStageRefIds": [
+        "3"
+      ],
+      "type": "scaleManifest"
+    },
+    {
+      "analysisType": "realTime",
+      "canaryConfig": {
+        "beginCanaryAnalysisAfterMins": "1",
+        "canaryAnalysisIntervalMins": "2",
+        "canaryConfigId": "7d238056-2231-491f-a8ed-6bd676082198",
+        "lifetimeDuration": "PT0H10M",
+        "metricsAccountName": "prom-account",
+        "scopes": [
+          {
+            "controlScope": "simple-webapp-baseline",
+            "experimentScope": "simple-webapp-canary",
+            "extendedScopeParams": {},
+            "scopeName": "default"
+          }
+        ],
+        "scoreThresholds": {
+          "marginal": "50",
+          "pass": "80"
+        },
+        "storageAccountName": "minio-canary"
+      },
+      "completeOtherBranchesThenFail": false,
+      "continuePipeline": true,
+      "failPipeline": false,
+      "name": "Canary Analysis",
+      "refId": "5",
+      "requisiteStageRefIds": [
+        "4"
+      ],
+      "type": "kayentaCanary"
+    },
+    {
+      "account": "my-k8s-account",
+      "cloudProvider": "kubernetes",
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "name": "simple-webapp",
+            "namespace": "simple-webapp"
+          },
+          "spec": {
+            "replicas": 5,
+            "selector": {
+              "matchLabels": {
+                "app": "simple-webapp"
+              }
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "simple-webapp"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "image": "jeromeevangelista/simple-webapp:${trigger[\"tag\"]}",
+                    "name": "simple-webapp",
+                    "ports": [
+                      {
+                        "containerPort": 8000,
+                        "name": "web"
+                      },
+                      {
+                        "containerPort": 8080,
+                        "name": "metrics"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "moniker": {
+        "app": "simple-webapp"
+      },
+      "name": "Deploy Production",
+      "refId": "6",
+      "requisiteStageRefIds": [
+        "5"
+      ],
+      "skipExpressionEvaluation": false,
+      "source": "text",
+      "stageEnabled": {
+        "expression": "${ #stage('Canary Analysis')['status'].toString() == 'SUCCEEDED' }",
+        "type": "expression"
+      },
+      "trafficManagement": {
+        "enabled": false,
+        "options": {
+          "enableTraffic": false,
+          "services": []
+        }
+      },
+      "type": "deployManifest"
+    },
+    {
+      "account": "my-k8s-account",
+      "app": "simple-webapp",
+      "cloudProvider": "kubernetes",
+      "location": "simple-webapp",
+      "manifestName": "deployment simple-webapp-baseline",
+      "mode": "static",
+      "name": "Delete  Baseline",
+      "options": {
+        "cascading": true
+      },
+      "refId": "7",
+      "requisiteStageRefIds": [
+        "5"
+      ],
+      "type": "deleteManifest"
+    },
+    {
+      "account": "my-k8s-account",
+      "app": "simple-webapp",
+      "cloudProvider": "kubernetes",
+      "location": "simple-webapp",
+      "manifestName": "deployment simple-webapp-canary",
+      "mode": "static",
+      "name": "Delete Canary",
+      "options": {
+        "cascading": true
+      },
+      "refId": "8",
+      "requisiteStageRefIds": [
+        "5"
+      ],
+      "type": "deleteManifest"
+    },
+    {
+      "account": "my-k8s-account",
+      "app": "simple-webapp",
+      "cloudProvider": "kubernetes",
+      "location": "simple-webapp",
+      "manifestName": "deployment simple-webapp",
+      "mode": "static",
+      "name": "Scale Back Production",
+      "refId": "9",
+      "replicas": "5",
+      "requisiteStageRefIds": [
+        "5"
+      ],
+      "stageEnabled": {
+        "expression": "${ #stage('Canary Analysis')['status'].toString() != 'SUCCEEDED' }",
+        "type": "expression"
+      },
+      "type": "scaleManifest"
+    }
+  ],
+  "triggers": [
+    {
+      "account": "simple-webapp",
+      "enabled": true,
+      "organization": "jeromeevangelista",
+      "registry": "index.docker.io",
+      "repository": "jeromeevangelista/simple-webapp",
+      "type": "docker"
+    }
+  ],
+  "updateTs": "1736073623000"
+}
