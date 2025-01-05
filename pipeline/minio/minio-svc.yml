@@ -5,6 +5,7 @@ metadata:
   labels:
     app: minio
   name: minio
+  namespace: minio
 spec:
   ports:
   - port: 9000
