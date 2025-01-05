@@ -14,7 +14,7 @@ spec:
         app: simple-webapp
     spec:
       containers:
-        - image: 'jeromeevangelista/simple-webapp:latest'
+        - image: 'jeromeevangelista/simple-webapp:v1'
           name: simple-webapp
           ports:
             - containerPort: 8000
