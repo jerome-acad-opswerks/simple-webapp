@@ -5,6 +5,7 @@ metadata:
   labels:
     app: teamcity-agent
   name: teamcity-agent
+  namespace: teamcity
 spec:
   replicas: 1
   selector:

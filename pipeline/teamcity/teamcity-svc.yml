@@ -5,6 +5,7 @@ metadata:
   labels:
     app: teamcity
   name: teamcity
+  namespace: teamcity
 spec:
   ports:
   - port: 80
