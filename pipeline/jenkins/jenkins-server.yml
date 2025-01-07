@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: jenkins
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: jenkins
+    spec:
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: jenkins
+      containers:
+      - image: jeromeevangelista/customjenkins
+        name: jenkins
+        env:
+          - name: DOCKER_HOST
+            value: "tcp://localhost:2376"
+          - name: DOCKER_CERT_PATH
+            value: "/certs/client"
+          - name: DOCKER_TLS_VERIFY
+            value: "1"
+        ports:
+          - containerPort: 8080
+            name: ui
+          - containerPort: 50000
+            name: inbound-agent
+        volumeMounts:
+          - name: storage
+            mountPath: "/certs/client"
+            subPath: certs
+            readOnly: true
+          - name: storage
+            mountPath: "/var/jenkins_home"
+            subPath: jenkins
+
+      - image: docker:dind
+        name: docker
+        ports:
+          - containerPort: 2376
+            name: "dockerdaemon"
+        env:
+          - name: DOCKER_TLS_CERTDIR
+            value: "/certs"
+        securityContext:
+          privileged: true
+        volumeMounts:
+          - name: storage
+            mountPath: "/certs/client"
+            subPath: certs
+          - name: storage
+            mountPath: "/var/jenkins_home"
+            subPath: jenkins
+        resources: {}
+status: {}
