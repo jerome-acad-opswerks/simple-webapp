@@ -13,6 +13,6 @@ spec:
     targetPort: 8111
   selector:
     app: teamcity
-  type: NodePort
+  type: ClusterIP
 status:
   loadBalancer: {}
