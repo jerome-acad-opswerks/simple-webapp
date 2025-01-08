@@ -25,6 +25,15 @@ spec:
         - name: logs
           persistentVolumeClaim:
             claimName: teamcity-logs-pvc
+      initContainers:
+        - name: init
+          image: alpine
+          volumeMounts:
+            - mountPath: "/data/datadir/"
+              name: datadir
+            - mountPath: "/data/logs"
+              name: logs
+          command: ["sh", "-c", "chown 1000:1000 /data/datadir; chown 1000:1000 /data/logs"]
       containers:
       - image: jetbrains/teamcity-server
         securityContext:
