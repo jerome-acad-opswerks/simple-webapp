@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: teamcity-agent1
+  name: teamcity-agent1
+  namespace: teamcity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teamcity-agent1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: teamcity-agent1
+    spec:
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: teamcity-agent1-pvc
+      containers:
+      - image: 'jetbrains/teamcity-agent:2024.12-linux-sudo'
+        name: teamcity-agent
+        securityContext:
+          runAsUser: 0
+          privileged: true
+        env:
+        - name: SERVER_URL
+          value: 'teamcity.teamcity'
+        - name: AGENT_NAME
+          value: "build-agent-1"
+        - name: DOCKER_IN_DOCKER
+          value: start
+        resources: {}
+        volumeMounts:
+        - mountPath: "/data/teamcity_agent/conf"
+          name: storage
+status: {}

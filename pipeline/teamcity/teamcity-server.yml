@@ -1,38 +1,42 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: teamcity
-  namespace: teamcity
+  creationTimestamp: null
   labels:
     app: teamcity
+  name: teamcity
+  namespace: teamcity
 spec:
-  volumes:
-    - name: storage
-      persistentVolumeClaim:
-        claimName: teamcity
-  initContainers:
-    - name: init
-      image: busybox
-      volumeMounts:
-        - mountPath: "/data/teamcity_server/datadir"
-          name: storage
-          subPath: data
-        - mountPath: "/opt/teamcity/logs"
-          name: storage
-          subPath: opt
-      command: ["sh", "-c", "chown 1000:1000 /data/teamcity_server/datadir; chown 1000:1000 /opt/teamcity/logs"]
-  containers:
-    - name: teamcity-container
-      image: jetbrains/teamcity-server
-      securityContext:
-        runAsUser: 1000
-      ports:
-        - containerPort: 8111
-          name: "teamcity-server"
-      volumeMounts:
-        - mountPath: "/data/teamcity_server/datadir"
-          name: storage
-          subPath: data
-        - mountPath: "/opt/teamcity/logs"
-          name: storage
-          subPath: opt
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teamcity
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: teamcity
+    spec:
+      volumes:
+        - name: datadir
+          persistentVolumeClaim:
+            claimName: teamcity-datadir-pvc
+        - name: logs
+          persistentVolumeClaim:
+            claimName: teamcity-logs-pvc
+      containers:
+      - image: jetbrains/teamcity-server
+        securityContext:
+          runAsUser: 1000
+        ports:
+          - containerPort: 8111
+            name: server
+        volumeMounts:
+          - mountPath: "/data/teamcity_server/datadir"
+            name: datadir
+          - mountPath: "/opt/teamcity/logs"
+            name: logs
+        name: teamcity
+        resources: {}
+status: {}
