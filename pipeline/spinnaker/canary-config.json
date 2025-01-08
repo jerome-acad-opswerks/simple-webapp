@@ -8,8 +8,6 @@
     }
   },
   "configVersion": "1",
-  "createdTimestamp": 1736071105608,
-  "createdTimestampIso": "2025-01-05T09:58:25.608Z",
   "description": "",
   "judge": {
     "judgeConfigurations": {},
@@ -36,6 +34,4 @@
   ],
   "name": "simple-webapp-canary",
   "templates": {},
-  "updatedTimestamp": 1736073132563,
-  "updatedTimestampIso": "2025-01-05T10:32:12.563Z"
 }

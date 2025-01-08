@@ -94,7 +94,7 @@
       "canaryConfig": {
         "beginCanaryAnalysisAfterMins": "1",
         "canaryAnalysisIntervalMins": "2",
-        "canaryConfigId": "7d238056-2231-491f-a8ed-6bd676082198",
+        "canaryConfigId": "",
         "lifetimeDuration": "PT0H10M",
         "metricsAccountName": "prom-account",
         "scopes": [
@@ -200,7 +200,7 @@
       "canaryConfig": {
         "beginCanaryAnalysisAfterMins": "1",
         "canaryAnalysisIntervalMins": "2",
-        "canaryConfigId": "7d238056-2231-491f-a8ed-6bd676082198",
+        "canaryConfigId": "",
         "lifetimeDuration": "PT0H10M",
         "metricsAccountName": "prom-account",
         "scopes": [
