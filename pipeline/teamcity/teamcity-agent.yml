@@ -39,7 +39,7 @@ spec:
           privileged: true
         env:
         - name: SERVER_URL
-          value: 'teamcity.default'
+          value: 'teamcity.teamcity'
         - name: AGENT_NAME
           value: "build-agent-1"
         - name: DOCKER_IN_DOCKER
