@@ -18,6 +18,5 @@ spec:
     name: webui
   selector:
     app: minio
-  type: NodePort
 status:
   loadBalancer: {}
