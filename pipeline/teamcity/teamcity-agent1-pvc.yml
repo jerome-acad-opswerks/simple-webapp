@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: teamcity-datadir-pvc
+  name: teamcity-agent1-pvc
   namespace: teamcity
 spec:
   accessModes:
