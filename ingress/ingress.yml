@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cicd-ingress
+  namespace: ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: jenkins.tuberos.duckdns.org
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: jenkins-svc
+            port:
+              number: 8080
+  - host: minio.tuberos.duckdns.org
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: minio-svc
+            port:
+              number: 9001
+  - host: teamcity.tuberos.duckdns.org
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: teamcity-svc
+            port:
+              number: 80
