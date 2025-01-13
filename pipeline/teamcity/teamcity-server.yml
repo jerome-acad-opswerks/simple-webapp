@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+apiVersion: apps/v1`
 kind: Deployment
 metadata:
   creationTimestamp: null
@@ -47,5 +47,9 @@ spec:
           - mountPath: "/opt/teamcity/logs"
             name: logs
         name: teamcity
-        resources: {}
+        resources: 
+          requests:
+            memory: "1Gi"
+          limits:
+            memory: "1.5Gi"
 status: {}
