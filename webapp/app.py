@@ -7,4 +7,4 @@ metrics = GunicornPrometheusMetrics(app)
 
 @app.route("/")
 def main():
-    return render_template("index.html")
+    return render_templatezxc("index.html")
