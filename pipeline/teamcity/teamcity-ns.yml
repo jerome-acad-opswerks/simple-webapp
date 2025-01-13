@@ -1,4 +1,4 @@
-apiVersion: v1
+aaapiVersion: v1
 kind: Namespace
 metadata:
   creationTimestamp: null
