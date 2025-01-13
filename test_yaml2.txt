@@ -1,7 +1,7 @@
-AapiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sample-deploymentzzttojihkjh
+  name: sample-deployment
   labels:
     app: sample-app
 spec:
