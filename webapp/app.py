@@ -6,5 +6,5 @@ app = Flask(__name__)
 metrics = GunicornPrometheusMetrics(app)
 
 @app.route("/")
-def main():
-    return render_template("index.html")
+def m123ain():
+    return render_templategg("index.html")
