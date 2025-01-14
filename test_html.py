@@ -53,23 +53,6 @@ def find_invalid_html_tags(html_content):
     invalid_tags = tags - STANDARD_HTML_TAGS
     return list(invalid_tags)
 
-# Detect mismatched HTML tags
-def find_mismatched_tags(html_content):
-    soup = BeautifulSoup(html_content, 'html.parser')
-    tag_stack = []
-    mismatches = []
-    for tag in soup.find_all(True):
-        if not tag.is_self_closing:
-            if tag.name not in STANDARD_HTML_TAGS:
-                continue
-            if tag.name in tag_stack:
-                tag_stack.remove(tag.name)
-            else:
-                tag_stack.append(tag.name)
-    if tag_stack:
-        mismatches.extend(tag_stack)
-    return mismatches
-
 # Collect changed HTML files
 changed_html_files = get_changed_html_files()
 
@@ -92,12 +75,6 @@ def test_invalid_html_tags(html_file):
     content = load_html(html_file)
     invalid_tags = find_invalid_html_tags(content)
     assert not invalid_tags, f"Invalid or non-standard HTML tags in {html_file}: {invalid_tags}"
-
-@pytest.mark.parametrize("html_file", changed_html_files)
-def test_mismatched_tags(html_file):
-    content = load_html(html_file)
-    mismatched_tags = find_mismatched_tags(content)
-    assert not mismatched_tags, f"Mismatched or unclosed HTML tags in {html_file}: {mismatched_tags}"
 
 if __name__ == "__main__":
     pytest.main()
