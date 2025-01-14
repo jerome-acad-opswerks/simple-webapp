@@ -3,56 +3,45 @@ import re
 import pytest
 from html5lib import parse
 
-def get_changed_files():
+# Directory to search for HTML files
+REPO_ROOT = os.getcwd()  # Current directory (repository root)
+
+def get_html_files():
     """
-    Retrieve a list of changed HTML files in the current Pull Request.
+    Retrieve a list of all .html files in the repository.
     """
-    try:
-        result = subprocess.run(
-            ["git", "diff", "--name-only", "origin/main...HEAD"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        files = result.stdout.splitlines()
-        return [f for f in files if f.endswith(".html")]
-    except subprocess.CalledProcessError as e:
-        pytest.fail(f"Failed to retrieve changed files: {str(e)}")
+    html_files = []
+    for root, _, files in os.walk(REPO_ROOT):
+        for file in files:
+            if file.endswith(".html"):
+                html_files.append(os.path.join(root, file))
+    return html_files
 
 def validate_html(file_path):
     """Parse the HTML file to ensure it is syntactically valid."""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             html_content = f.read()
-            # Parse the HTML content
-            parse(html_content, treebuilder="dom")
+            parse(html_content, treebuilder="dom")  # Validate with html5lib
     except Exception as e:
         pytest.fail(f"HTML syntax error in file {file_path}: {str(e)}")
 
-@pytest.mark.parametrize("html_file", get_changed_files())
-def test_html_syntax(html_file):
-    """Test each modified HTML file for syntax correctness."""
-    validate_html(html_file)
-
-def test_hex_color_in_index_html():
-    """Test if the HEX color in index.html is valid."""
-    # Path to the specific file
-    file_path = "path/to/index.html"
-    if not os.path.exists(file_path):
-        pytest.fail(f"File not found: {file_path}")
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    # Regular expression to find HEX colors
+def validate_hex_colors(file_path):
+    """Check HEX color codes in the file to ensure they are valid."""
     hex_pattern = r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})"
-    matches = re.findall(hex_pattern, content)
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            matches = re.findall(hex_pattern, content)
+            if matches:
+                for hex_color in matches:
+                    if not re.match(r"^#[0-9a-fA-F]{6}$", hex_color):
+                        pytest.fail(f"Invalid HEX color in {file_path}: {hex_color}")
+    except Exception as e:
+        pytest.fail(f"Error checking HEX colors in {file_path}: {str(e)}")
 
-    if not matches:
-        pytest.fail("No valid HEX color found in the file.")
-
-    for hex_color in matches:
-        if not re.match(r"^#[0-9a-fA-F]{6}$", hex_color):
-            pytest.fail(f"Invalid HEX color: {hex_color}")
-
-    # Test passes if all HEX colors are valid
+@pytest.mark.parametrize("html_file", get_html_files())
+def test_html_files(html_file):
+    """Test each HTML file for syntax and HEX color correctness."""
+    validate_html(html_file)
+    validate_hex_colors(html_file)
