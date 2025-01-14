@@ -19,20 +19,22 @@ def get_html_files():
     return html_files
 
 def validate_html(file_path):
-    """Validate HTML syntax using BeautifulSoup."""
+    """Validate HTML syntax using BeautifulSoup and lxml."""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
-            soup = BeautifulSoup(content, "html.parser")
 
-        # Check for unclosed or malformed tags (this is just a simple check)
-        if soup.find_all(string=lambda text: "unclosed" in text.lower()):
-            pytest.fail(f"Unclosed tag detected in file {file_path}")
+        # Parse with lxml's strict parser to catch syntax errors
+        parser = etree.HTMLParser(recover=False)  # Set recover=False to not automatically fix errors
+        etree.fromstring(content, parser)
+        
+        # If no error occurs, pass the test
+        print(f"{file_path} is well-formed.")
 
-        # You can add more detailed checks here (e.g., missing DOCTYPE, malformed HTML)
-
-    except Exception as e:
+    except etree.XMLSyntaxError as e:
         pytest.fail(f"HTML syntax error in file {file_path}: {str(e)}")
+    except Exception as e:
+        pytest.fail(f"Unexpected error while processing {file_path}: {str(e)}")
 
 def validate_hex_colors(file_path):
     """Check HEX color codes in the file to ensure they are valid."""
@@ -77,5 +79,5 @@ def run_tests_if_html_changed():
     else:
         print("No HTML files changed. Skipping tests.")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     run_tests_if_html_changed()
