@@ -10,17 +10,13 @@ def load_yaml(file_path):
 
 # Get changed YAML files from the PR using git diff
 def get_changed_yaml_files():
-    try:
-        result = subprocess.run(
-            ["git", "diff", "--name-only", "origin/main...HEAD"],
-            stdout=subprocess.PIPE,
-            check=True,
-            text=True
-        )
-        files = result.stdout.strip().split('\n')
-        return [Path(f) for f in files if f.endswith((".yaml", ".yml"))]
-    except subprocess.CalledProcessError:
-        return []
+    result = subprocess.run(
+        ["git", "diff", "--name-only", "origin/main...HEAD"],
+        stdout=subprocess.PIPE,
+        text=True
+    )
+    files = result.stdout.strip().split('\n')
+    return [Path(f) for f in files if f.endswith((".yaml", ".yml"))]
 
 # Collect changed YAML files
 changed_yaml_files = get_changed_yaml_files()
@@ -31,11 +27,8 @@ if not changed_yaml_files:
 
 @pytest.mark.parametrize("yaml_file", changed_yaml_files)
 def test_yaml_syntax(yaml_file):
-    try:
-        docs = load_yaml(yaml_file)
-        assert docs is not None, f"YAML file {yaml_file} is empty or invalid."
-    except yaml.YAMLError as exc:
-        pytest.fail(f"Syntax error in {yaml_file}: {exc}")
+    docs = load_yaml(yaml_file)
+    assert docs is not None, f"YAML file {yaml_file} is empty or invalid."
 
 @pytest.mark.parametrize("yaml_file", changed_yaml_files)
 def test_k8s_required_fields(yaml_file):
