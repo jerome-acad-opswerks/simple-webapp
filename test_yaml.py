@@ -25,6 +25,10 @@ def get_changed_yaml_files():
 # Collect only changed YAML files
 changed_yaml_files = get_changed_yaml_files()
 
+# Skip tests if no YAML files are found
+if not changed_yaml_files:
+    pytest.skip("No YAML files changed in this PR, skipping tests.", allow_module_level=True)
+
 @pytest.mark.parametrize("yaml_file", changed_yaml_files)
 def test_yaml_syntax(yaml_file):
     try:
