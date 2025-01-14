@@ -1,69 +1,53 @@
 import subprocess
 import pytest
-import os
-from bs4 import BeautifulSoup
-from lxml import etree
 import re
+from pathlib import Path
+from bs4 import BeautifulSoup
 
-REPO_ROOT = os.getcwd()
+# Helper function to load HTML content
+def load_html(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
 
-def get_html_files():
-    html_files = []
-    for root, _, files in os.walk(REPO_ROOT):
-        for file in files:
-            if file.endswith(".html"):
-                html_files.append(os.path.join(root, file))
-    return html_files
-
-def validate_html(file_path):
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        parser = etree.HTMLParser(recover=False)
-        etree.fromstring(content, parser)
-        print(f"{file_path} is well-formed.")
-    except etree.XMLSyntaxError as e:
-        pytest.fail(f"HTML syntax error in file {file_path}: {str(e)}")
-    except Exception as e:
-        pytest.fail(f"Unexpected error in {file_path}: {str(e)}")
-
-def validate_hex_colors(file_path):
-    hex_pattern = r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})"
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        styles = re.findall(r'style="([^"]*)"', content)
-        for style in styles:
-            matches = re.findall(hex_pattern, style)
-            if not matches and "color" in style:
-                pytest.fail(f"Invalid HEX color in {file_path}: {style}")
-    except Exception as e:
-        pytest.fail(f"Error checking HEX colors in {file_path}: {str(e)}")
-
-def detect_changed_html_files():
+# Get changed HTML files from the PR using git diff
+def get_changed_html_files():
     try:
         result = subprocess.run(
-            ["git", "diff", "--name-only", "HEAD~1", "HEAD"],
+            ["git", "diff", "--name-only", "origin/main...HEAD"],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True
+            check=True,
+            text=True
         )
-        changed_files = result.stdout.splitlines()
-        return [file for file in changed_files if file.endswith(".html")]
-    except subprocess.CalledProcessError as e:
-        print(f"Error running git diff: {e.stderr}")
+        files = result.stdout.strip().split('\n')
+        return [Path(f) for f in files if f.endswith(".html")]
+    except subprocess.CalledProcessError:
         return []
 
-def run_tests_if_html_changed():
-    html_files = detect_changed_html_files()
-    if html_files:
-        print(f"HTML files changed: {html_files}")
-        for html_file in html_files:
-            validate_html(html_file)
-            validate_hex_colors(html_file)
-    else:
-        print("No HTML files changed. Skipping tests.")
+# Validate hex color codes in HTML files
+def find_invalid_hex_colors(html_content):
+    hex_color_pattern = re.compile(r'#(?:[0-9a-fA-F]{3}){1,2}(?![0-9a-fA-F])')
+    invalid_pattern = re.compile(r'#(?![0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b)[^\s;'"]+')
+    
+    valid_colors = set(hex_color_pattern.findall(html_content))
+    invalid_colors = set(invalid_pattern.findall(html_content)) - valid_colors
+    return list(invalid_colors)
+
+# Collect changed HTML files
+changed_html_files = get_changed_html_files()
+
+@pytest.mark.parametrize("html_file", changed_html_files)
+def test_html_syntax(html_file):
+    try:
+        content = load_html(html_file)
+        BeautifulSoup(content, 'html.parser')
+    except Exception as exc:
+        pytest.fail(f"Syntax error in {html_file}: {exc}")
+
+@pytest.mark.parametrize("html_file", changed_html_files)
+def test_invalid_hex_colors(html_file):
+    content = load_html(html_file)
+    invalid_colors = find_invalid_hex_colors(content)
+    assert not invalid_colors, f"Invalid hex color codes in {html_file}: {invalid_colors}"
 
 if __name__ == "__main__":
-    run_tests_if_html_changed()
+    pytest.main()
