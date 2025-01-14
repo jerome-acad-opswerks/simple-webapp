@@ -1,16 +1,15 @@
 import subprocess
 import pytest
-import re
+import yaml
 from pathlib import Path
-from bs4 import BeautifulSoup
 
-# Helper function to load HTML content
-def load_html(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        return file.read()
+# Function to load YAML files
+def load_yaml(file_path):
+    with open(file_path, 'r') as stream:
+        return list(yaml.safe_load_all(stream))
 
-# Get changed HTML files from the PR using git diff
-def get_changed_html_files():
+# Get changed YAML files from the PR using git diff
+def get_changed_yaml_files():
     try:
         result = subprocess.run(
             ["git", "diff", "--name-only", "origin/main...HEAD"],
@@ -19,35 +18,29 @@ def get_changed_html_files():
             text=True
         )
         files = result.stdout.strip().split('\n')
-        return [Path(f) for f in files if f.endswith(".html")]
+        return [Path(f) for f in files if f.endswith((".yaml", ".yml"))]
     except subprocess.CalledProcessError:
         return []
 
-# Validate hex color codes in HTML files
-def find_invalid_hex_colors(html_content):
-    hex_color_pattern = re.compile(r'#(?:[0-9a-fA-F]{3}){1,2}(?![0-9a-fA-F])')
-    invalid_pattern = re.compile(r'#(?![0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b)[^\s;'"]+')
-    
-    valid_colors = set(hex_color_pattern.findall(html_content))
-    invalid_colors = set(invalid_pattern.findall(html_content)) - valid_colors
-    return list(invalid_colors)
+# Collect only changed YAML files
+changed_yaml_files = get_changed_yaml_files()
 
-# Collect changed HTML files
-changed_html_files = get_changed_html_files()
-
-@pytest.mark.parametrize("html_file", changed_html_files)
-def test_html_syntax(html_file):
+@pytest.mark.parametrize("yaml_file", changed_yaml_files)
+def test_yaml_syntax(yaml_file):
     try:
-        content = load_html(html_file)
-        BeautifulSoup(content, 'html.parser')
-    except Exception as exc:
-        pytest.fail(f"Syntax error in {html_file}: {exc}")
+        docs = load_yaml(yaml_file)
+        assert docs is not None, f"YAML file {yaml_file} is empty or invalid."
+    except yaml.YAMLError as exc:
+        pytest.fail(f"Syntax error in {yaml_file}: {exc}")
 
-@pytest.mark.parametrize("html_file", changed_html_files)
-def test_invalid_hex_colors(html_file):
-    content = load_html(html_file)
-    invalid_colors = find_invalid_hex_colors(content)
-    assert not invalid_colors, f"Invalid hex color codes in {html_file}: {invalid_colors}"
+@pytest.mark.parametrize("yaml_file", changed_yaml_files)
+def test_k8s_required_fields(yaml_file):
+    required_fields = ["apiVersion", "kind", "metadata"]
+    docs = load_yaml(yaml_file)
+    for doc in docs:
+        for field in required_fields:
+            assert field in doc, f"Missing '{field}' in {yaml_file}"
+        assert "name" in doc["metadata"], f"Missing 'metadata.name' in {yaml_file}"
 
 if __name__ == "__main__":
     pytest.main()
