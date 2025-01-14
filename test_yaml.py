@@ -22,7 +22,7 @@ def get_changed_yaml_files():
     except subprocess.CalledProcessError:
         return []
 
-# Collect only changed YAML files
+# Collect changed YAML files
 changed_yaml_files = get_changed_yaml_files()
 
 # Skip tests if no YAML files are found
@@ -48,4 +48,3 @@ def test_k8s_required_fields(yaml_file):
 
 if __name__ == "__main__":
     pytest.main()
-
