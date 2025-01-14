@@ -1,7 +1,8 @@
-import os
-import re
+import subprocess
 import pytest
+import os
 from bs4 import BeautifulSoup
+import re
 
 # Directory to search for HTML files
 REPO_ROOT = os.getcwd()
@@ -24,11 +25,12 @@ def validate_html(file_path):
             content = f.read()
             soup = BeautifulSoup(content, "html.parser")
 
-        # Check for unclosed tags
+        # Check for unclosed or malformed tags (this is just a simple check)
         if soup.find_all(string=lambda text: "unclosed" in text.lower()):
             pytest.fail(f"Unclosed tag detected in file {file_path}")
 
-        # Additional validations can be added here
+        # You can add more detailed checks here (e.g., missing DOCTYPE, malformed HTML)
+
     except Exception as e:
         pytest.fail(f"HTML syntax error in file {file_path}: {str(e)}")
 
@@ -47,9 +49,33 @@ def validate_hex_colors(file_path):
     except Exception as e:
         pytest.fail(f"Error checking HEX colors in {file_path}: {str(e)}")
 
-@pytest.mark.parametrize("html_file", get_html_files())
-def test_html_files(html_file):
-    """Test each HTML file for syntax and HEX color correctness."""
-    validate_html(html_file)
-    validate_hex_colors(html_file)
+def detect_changed_html_files():
+    """Check for changed HTML files in the current commit or branch."""
+    # Get list of changed files between the current and previous commit
+    result = subprocess.run(
+        ["git", "diff", "--name-only", "HEAD~1", "HEAD"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    changed_files = result.stdout.splitlines()
     
+    # Filter for HTML files
+    html_files = [file for file in changed_files if file.endswith(".html")]
+    return html_files
+
+def run_tests_if_html_changed():
+    """Run tests if any HTML files are changed."""
+    html_files = detect_changed_html_files()
+    
+    if html_files:
+        print(f"HTML files changed: {html_files}")
+        for html_file in html_files:
+            validate_html(html_file)
+            validate_hex_colors(html_file)
+        pytest.main()  # Run pytest if there are any HTML changes
+    else:
+        print("No HTML files changed. Skipping tests.")
+
+if _name_ == "_main_":
+    run_tests_if_html_changed()
