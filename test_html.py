@@ -77,5 +77,5 @@ def run_tests_if_html_changed():
     else:
         print("No HTML files changed. Skipping tests.")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     run_tests_if_html_changed()
