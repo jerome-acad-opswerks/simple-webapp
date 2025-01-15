@@ -39,7 +39,7 @@ def get_changed_html_files():
 
 # Validate hex color codes in HTML files
 def find_invalid_hex_colors(html_content):
-    hex_color_pattern = re.compile(r'#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?![0-9a-fA-F])')
+    hex_color_pattern = re.compile(r'background-color:#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})(?![0-9a-fA-F])')
     invalid_pattern = re.compile(r'#(?![0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b)[^\s;\'\".:,(){}]+')
     valid_colors = set(hex_color_pattern.findall(html_content))
     invalid_colors = set(invalid_pattern.findall(html_content)) - valid_colors
